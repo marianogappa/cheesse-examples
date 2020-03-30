@@ -1,0 +1,38 @@
+<html>
+	<head>
+		<meta charset="utf-8"/>
+		<link rel="stylesheet" href="css/chessboard-1.0.0.min.css" />
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+		<script src="js/chessboard-1.0.0.min.js"></script>
+		<script src="wasm_exec.js"></script>
+		<script>
+			const go = new Go()
+			WebAssembly.instantiateStreaming(fetch("main.wasm"), go.importObject).then((result) => {
+				go.run(result.instance)
+				init()
+			})
+		</script>
+	</head>
+	<body>
+		<div id="board" style="width: 400px"></div>
+		<script>
+			let game, boardUi
+			function update() {
+					const randomAction = game.actions[Math.floor(Math.random() * (game.actions.length-1))]
+					const { outputGame, error } = DoAction(game, randomAction)
+					if (error) {
+						throw new TypeError(error)
+					}
+					game = outputGame
+					boardUi.position(game.fenString)
+					window.setTimeout(update, 600)
+			}
+			function init() {
+				game = DefaultGame()
+				boardUi = ChessBoard('board', { moveSpeed: 'fast' })
+				boardUi.start()
+				update()
+			}
+		</script>
+	</body>
+</html>
